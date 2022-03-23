@@ -1,0 +1,315 @@
+Question-01: Only Verify
+
+openstack domain list
+openstack project list --domain ex210
+openstack user list --domain ex210
+openstack network list
+
+
+Question-02:
+(undercloud) [stack@director ~]$ source stackrc
+(undercloud) [stack@director ~]$ openstack network list
+(undercloud) [stack@director ~]$ openstack subnet list 
+(undercloud) [stack@director ~]$ openstack subnet show management_subnet --fit-width
+
+Question-03:
+ssh root@controller0
+[root@controller0 ~]# ovs-vsctl list-br	
+[root@controller0 ~]# ovs-vsctl list-ifaces br-int
+[root@controller0 ~]# ovs-vsctl show
+
+Question-04: [only in Exam]
+(overcloud) [stack@director ~]$ openstack network create --share --provider-network-type vlan --provider-physical-network storage storagenet
+(overcloud) [stack@director ~]$ openstack subnet create --subnet-range 172.24.250.0/24 --allocation-pool start=172.24.250.101,end=172.24.250.109  --network storagenet storage-subnet
+
+Question-05:
+[root@controller0 ~]# podman ps | grep keystone
+[root@controller0 ~]# podman inspect keystone | grep bind
+[root@controller0 ~]# ls /var/lib/config-data/puppet-generated/keystone/etc/keystone/fernet-keys (verify key count on controller node)
+(overcloud) [stack@director ~]$ source stackrc 
+(undercloud) [stack@director ~]$ openstack workflow list | grep fernet (copy the fernet key name)
+(undercloud) [stack@director ~]$ openstack workflow execution create tripleo.fernet_keys.v1.rotate_fernet_keys '{"container": "overcloud"}'
+[root@controller0 ~]# ls /var/lib/config-data/puppet-generated/keystone/etc/keystone/fernet-keys (verify key count on controller node)
+
+Question-06:
+[student@workstation ~]$ lab controlplane-backup start (not for exam)
+(undercloud) [stack@director ~]$ ansible-playbook -i nfs-inventory.ini --become --become-user root --tags bar_setup_nfs_server bar_nfs_setup.yaml
+[student@workstation ~]$ showmount -e utility
+(undercloud) [stack@director ~]$ tripleo-ansible-inventory --ansible_ssh_user heat-admin --static-yaml-inventory /home/stack/tripleo-inventory.yaml
+(undercloud) [stack@director ~]$ ansible-playbook -i tripleo-inventory.yaml --become --become-user root --tags bar_setup_rear bar_rear_setup-controller.yaml
+(undercloud) [stack@director ~]$ ansible-playbook -i tripleo-inventory.yaml --become --become-user root --tags bar_rear_create_restore_images-controller.yaml
+[root@utility ~]$ ls /ctl_plane_backups
+
+Question-07
+openstack server migrate rbserver --live compute0.overcloud.example.com
+
+Question-08
+[stack@director ~]$ source williamrc
+[stack@director ~]$ wget http://content/ex-scripts/webserver.sh (not for exam)
+[stack@director ~]$ openstack server create --flavor m1.petite --key-name webkey --nic net-id=engnet --image web --security-group ssh --security-group web --user-data webserver.sh webserver
+[stack@director ~]$ openstack server list
+[stack@director ~]$ openstack floating ip create public (note the floating IP)
+[stack@director ~]$ openstack server add floating ip webserver 172.25.250.X
+[stack@director ~]$ openstack server list
+[stack@director ~]$ ping 172.25.250.X
+[stack@director ~]$ curl 172.25.250.X (verify the webpage)
+[stack@director ~]$ ssh -i /home/stack/webkey.pem cloud-user@172.25.250.X
+[cloud-user@webserver ~]$ exit (logout from the instance)
+
+Question-09
+[stack@director ~]$ source  williamrc
+[stack@director ~]$ openstack volume create --size 2 eng-vol1
+[stack@director ~]$ openstack volume list
+[stack@director ~]$ openstack server add  volume webserver eng-vol1
+[stack@director ~]$ openstack volume list
+
+Question-10
+[root@controller0 ~]# podman ps | grep swift
+[root@controller0 ~]# podman inspect swift | grep bind
+[root@controller0 ~]# cd /var/lib/config-data/puppet-generated/swift/etc/swift
+[root@controller0 swift]# swift-ring-builder object.builder add z1-172.24.4.1:6000/d2 100
+[root@controller0 swift]# swift-ring-builder container.builder add z1-172.24.4.1:6001/d2 100
+[root@controller0 swift]# swift-ring-builder account.builder add z1-172.24.4.1:6002/d2 100
+[root@controller0 swift]# swift-ring-builder object.builder set_replicas 2
+[root@controller0 swift]# swift-ring-builder container.builder set_replicas 2
+[root@controller0 swift]# swift-ring-builder account.builder set_replicas 2
+[root@controller0 swift]# swift-ring-builder object.builder
+[root@controller0 swift]# swift-ring-builder container.builder
+[root@controller0 swift]# swift-ring-builder account.builder
+(undercloud) [stack@director ~]$ wget http://materials.example.com/storage-swiftrings/swift_ring_rebalance.yaml
+(undercloud) [stack@director ~]$ ansible-playbook -i /usr/bin/tripleo-ansible-inventory /home/stack/swift_ring_rebalance.yaml
+[root@controller0 ~]# podman restart swift_proxy swift_account_server swift_container_server swift_object_server
+[root@controller0 ~]# cd /var/lib/config-data/puppet-generated/swift/etc/swift
+[root@controller0 swift]# swift-ring-builder object.builder
+[root@controller0 swift]# swift-ring-builder container.builder
+[root@controller0 swift]# swift-ring-builder account.builder
+
+
+Question-11
+(overcloud) [stack@director ~]$ source robertrc
+(overcloud) [stack@director ~]$ ls
+(overcloud) [stack@director ~]$ openstack container create Warehouse
+(overcloud) [stack@director ~]$ openstack object create Warehouse file1.tar.gz
+(overcloud) [stack@director ~]$ openstack object list Warehouse
+
+Question-12
+[stack@director ]$ wget  -O /var/tmp/custom.qcow2  http://materials.example.com/osp-small.qcow2 (not for exam)
+[stack@director ]$ cd /var/tmp
+[stack@director /var/tmp]$ ls
+[stack@director /var/tmp]$ cp custom.qcow2 /home/stack/
+[stack@director /var/tmp]$ cd 
+
+[stack@director ]$ sudo yum install guestfish –y (not for exam)
+[stack@director ]$ guestfish -i --network --a custom.qcow2
+Welcome to guestfish, the guest filesystem shell for
+editing virtual machine filesystems and disk images.
+
+><fs> command "yum install httpd -y"
+><fs> command "systemctl start httpd"
+><fs> command "systemctl enable httpd"
+><fs> command "systemctl is-enabled httpd"
+><fs> command "useradd shyam"
+><fs> touch /var/www/html/index.html
+><fs> edit /var/www/html/index.html (add the given content this is like vim editor)
+><fs> selinux-relabel /etc/selinux/targeted/contexts/files/file_contexts /
+><fs> exit
+
+[stack@director]$ source robertrc
+(overcloud) [stack@director ]$ openstack flavor create --disk 10 --ram 2048  m1.web
+(overcloud) [stack@director ]$ openstack flavor list
+(overcloud) [stack@director ]$ openstack image create --disk-format qcow2 --min-disk 10 --min-ram 2048 --public --file custom.qcow2 custom-image1
+(overcloud) [stack@director ]$ openstack image list
+(overcloud) [stack@director ]$ source  georgerc
+(overcloud) [stack@director ]$ openstack keypair create CL210 > /home/stack/CL210.pem
+(overcloud) [stack@director ]$ chmod 600 CL210.pem
+(overcloud) [stack@director ]$ openstack server create --flavor m1.web --key-name CL210 --nic net-id=engnet --image custom-image1 --security-group ssh --security-group web custom-web-server
+(overcloud) [stack@director ]$ openstack server list
+(overcloud) [stack@director ]$ openstack floating ip create public (note the foating IP)
+(overcloud) [stack@director ]$ openstack server add floating ip custom-web-server 172.25.250.X
+(overcloud) [stack@director ]$ openstack server list
+(overcloud) [stack@director ]$ ping 172.25.150.X
+(overcloud) [stack@director ]$ curl 172.25.250.X (verify the http o/p)
+(overcloud) [stack@director ]$ ssh -i /home/stack/CL210.pem cloud-user@172.25.250.X
+[cloud-user@custom-web-server ~]$ exit
+
+Question-13
+(overcloud) [stack@director ]$ openstack aggregate create hci-aggregate
+(overcloud) [stack@director ]$ openstack aggregate add host hci-aggregate computehci0.overcloud.example.com
+(overcloud) [stack@director ]$ openstack aggregate set --property computehci=true hci-aggregate
+(overcloud) [stack@director ]$ openstack aggregate show hci-aggregate
+(overcloud) [stack@director ]$ openstack flavor create --ram 1024 --disk 10 --vcpus 2 --public default-hci
+(overcloud) [stack@director ]$ openstack flavor set default-hci --property computehci=true
+(overcloud) [stack@director ]$ openstack flavor show default-hci
+
+Question-14
+[student@workstation]$ ssh root@controller0
+[root@controller0 ~]# podman ps | grep rabbitmq (Note the bundle name incase not there note the ID for starting)
+ [root@controller0 ~]# podman exec -t rabbitmq-bundle-podman-0 rabbitmqctl add_user ash redhat
+[root@controller0 ~]# podman exec -t rabbitmq-bundle-podman-0 rabbitmqctl set_permissions ash ".*" ".*" ".*"
+[root@controller0 ~]# podman exec -t rabbitmq-bundle-podman-0 rabbitmqctl trace_on
+
+Question-15
+[root@utility]# kinit admin
+Password for admin@LAB.EXAMPLE.NET: RedHat123^
+[root@utility]# ipa user-add svc-ldap --first=OpenStack --last=LDAP --password
+password: redhat
+[root@controller0]# scp root@utility:/etc/ipa/ca.crt .
+[root@controller0 ~]# openssl x509 -in ca.crt -out idm_ca.pem -outform PEM
+[root@controller0 ~]# cp idm_ca.pem /etc/pki/ca-trust/source/anchors/
+[root@controller0 ~]# update-ca-trust extract
+[root@controller0 ~]# mkdir /var/lib/config-data/puppet-generated/keystone/etc/keystone/domains/
+[root@controller0 ~]# chown 42425:42425 /var/lib/config-data/puppet-generated/keystone/etc/keystone/domains/
+[root@controller0 ~]# cd /var/lib/config-data/puppet-generated/keystone/etc/keystone/
+[root@controller0 keystone]# crudini --set keystone.conf identity domain_specific_drivers_enabled true
+[root@controller0 keystone]# crudini --set keystone.conf identity domain_config_dir /etc/keystone/domains
+[root@controller0 keystone]# crudini --set keystone.conf assignment driver sql
+[root@controller0 keystone]# vim /var/lib/config-data/puppet-generated/horizon/etc/openstack-dashboard/local_settings
+OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = True
+OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = 'Default'
+[root@controller0 openstack-dashboard]# cd /var/lib/config-data/puppet-generated/keystone/etc/keystone/domains/
+[root@controller0 domains]# vim keystone.Example.conf
+[root@controller0 domains]# chown 42425:42425 keystone.Example.conf
+(overcloud) [stack@director ]$ openstack domain create Example
+(overcloud) [stack@director ]$ openstack role add --domain Example --user admin admin
+[root@controller0 ~]# systemctl restart tripleo_keystone
+[root@controller0 ~]# systemctl restart tripleo_horizon
+(overcloud) [stack@director ]$ openstack user list --domain Example 
+
+Question-16
+(overcloud) [stack@director ~]$ source robertrc 
+(overcloud) [stack@director ~]$ manila type-create cephfstype false
+(overcloud) [stack@director ~]$ manila create --name storage-network --share-type cephfstype cephfs 2
+(overcloud) [stack@director ~]$ manila type-list
+(overcloud) [stack@director ~]$ manila access-allow storage-network cephx cloud-user
+(overcloud) [stack@director ~]$ manila share-export-location-list storage-network (note the ceph volume path
+
+Question-17
+(overcloud) [stack@director ~]$ source williamrc
+(overcloud) [stack@director ~]$ openstack server create --flavor m1.petite --image web --security-group ssh --security-group web --key-name CL210 --nic net-id=engnet --nic net-id=provider-storage storage
+(overcloud) [stack@director ~]$ openstack server list
+(overcloud) [stack@director ~]$ openstack floating ip create public
+(overcloud) [stack@director ~]$ openstack server add floating ip storage 172.25.250.X
+
+[student@workstation ~]$ ssh root@controller0
+[root@controller0 ~]# podman ps | grep ceph
+[root@controller0 ~]# podman exec -it ceph-mon-controller0 /bin/sh
+()[root@controller0 ~]# ceph --name=client.manila --keyring=/etc/ceph/ceph.client.manila.keyring auth get-or-create client.cloud-user > keyring
+()[root@controller0 ~]# ls (check the keyring file)
+()[root@controller0 ~]# ls /etc/ceph/ (check the ceph.conf file))
+[root@controller0 ~]# podman ps | grep ceph
+[root@controller0 ~]# podman cp ceph-mon-controller0:/etc/ceph/ceph.conf .
+[root@controller0 ~]# podman cp ceph-mon-controller0:cloud-user.keyring .
+
+[stack@director ~]$scp root@controller0:ceph.conf .
+ [stack@director ~]$scp root@controller0:cloud-user.keyring .
+[stack@director ~]$openstack floating ip list
+[stack@director ~]$openstack network list
+[stack@director ~]$openstack floating ip create provider-datacentre
+[stack@director ~]$openstack floating ip list
+[stack@director ~]$openstack server list
+[stack@director ~]$openstack server add floating ip storage 172.25.250.172
+[stack@director ~]$openstack server list
+[stack@director ~]$ssh -i CL210.pem cloud-user@172.25.250.172
+
+(overcloud) [stack@director ~]$ scp -i /home/stack/CL210.pem keyring cloud-user@172.25.250.X:
+(overcloud) [stack@director ~]$ scp -i /home/stack/CL210.pem ceph.conf cloud-user@172.25.250.X:
+(overcloud) [stack@director ~]$ scp -i CL210.pem /etc/yum.repos.d/ceph.repo cloud-user@172.25.250.X: (not for exam)
+(overcloud) [stack@director ~]$ ssh -i CL210.pem cloud-user@172.25.250.X
+
+[cloud-user@storage ~]$ ls (verify the 3 files)
+[cloud-user@storage ~]$ sudo cp /home/cloud-user/ceph.repo /etc/yum.repos.d/ (not for exam)
+[cloud-user@storage ~]$ sudo yum install ceph-fuse -y (installing 7 packages but this is not for exam)
+[cloud-user@storage ~]$ sudo mkdir /mnt/ceph
+[cloud-user@storage ~]$ sudo ceph-fuse /mnt/ceph --id=cloud-user --conf=/home/cloud-user/ceph.conf --keyring=/home/cloud-user/keyring --client-mountpoint=/volumes/_nogroup/b89b5b14-09eb-4d6b-9cbd-1fed220e1888 (client-mountpoint:copy from mani share-export-location-list )
+[cloud-user@storage ~]$ df -kh (verify the o/p)
+logout
+[cloud-user@storage ~]$ logout
+
+Question-18:
+(overcloud) [stack@director ~]$ source williamrc
+(overcloud) [stack@director ~]$ cd templates/
+(overcloud) [stack@director templates]$ wget http://materials.example.com/heat/labserver-with-floatingip.yaml (not for exam)
+(overcloud) [stack@director templates]$ ls
+(overcloud) [stack@director templates]$ cp labserver-with-floatingip.yaml /home/stack/
+(overcloud) [stack@director ~]$ cd
+(overcloud) [stack@director ~]$ ls
+(overcloud) [stack@director ~]$ cp labserver-with-floatingip.yaml env.yaml
+(overcloud) [stack@director ~]$ vim env.yaml
+
+parameters: : "web"
+  key_name: "webkey"
+  instance_flavor: "m1.petite"
+  public_net: "public"
+  private_net: "engnet"
+  private_subnet: "eng-subnet
+  image_name 
+"
+
+(overcloud) [stack@director ~]$ vim labserver-with-floatingip.yaml (verify the error and add the group name)
+groupadd strgroup10 (next to /bin/bash line)
+
+(overcloud) [stack@director ~]$ openstack stack create -t labserver-with-floatingip.yaml   -e env.yaml HeatStack --dry-run
+(overcloud) [stack@director ~]$ openstack stack create -t labserver-with-floatingip.yaml   -e env.yaml HeatStack 
+(overcloud) [stack@director ~]$ openstack stack list
+(overcloud) [stack@director ~]$ openstack server list
+
+Question-19:
+(overcloud) [stack@director ~]$ openstack role create vaggregate
+[root@controller0 ~]# podman ps | grep nova
+[root@controller0 ~]# podman exec -it nova_api /bin/sh
+[root@controller0 ~]# yum install python3-oslo-policy
+[root@controller0 ~]# podman exec -it nova_api oslopolicy-policy-generator --namespace=nova | grep aggregate
+[root@controller0 ~]#  cat /var/lib/config-data/puppet-generated/nova/etc/nova/policy.json
+{
+	"os_compute_api:os-aggregates:show": "rule:admin_api or role:vaggregate",
+	"os_compute_api:os-aggregates:index": "rule:admin_api or role:vaggregate"
+}
+[root@controller0 ~]# cat /var/lib/config-data/puppet-generated/nova/etc/nova/policy.json | python3 -m json.tool
+
+Question-20:
+(overcloud) [stack@director ~]$ openstack aggregate list
+(overcloud) [stack@director ~]$ openstack aggregate show hci-aggregate
+(overcloud) [stack@director ~]$ openstack aggregate set --property aggregate=true --property hci=flavor hci-aggregate
+(overcloud) [stack@director ~]$ openstack aggregate show hci-aggregate
+(overcloud) [stack@director ~]$ openstack flavor list
+(overcloud) [stack@director ~]$ openstack flavor set --property aggregate=true --property hci=flavor default-hci
+(overcloud) [stack@director ~]$ openstack flavor show default-hci
+
+Question-21:
+openstack group list --domain Example
+(overcloud) [stack@director ~]$ openstack project create consulting --domain Example
+(overcloud) [stack@director ~]$ openstack project create development --parent consulting --domain Example
+(overcloud) [stack@director ~]$ openstack group list --domain Example
+(overcloud) [stack@director ~]$  openstack role add --group consulting-members --group-domain Example --project consulting --project-domain Example member
+(overcloud) [stack@director ~]$ openstack role assignment list --group consulting-members --group-domain Example --names 
+(overcloud) [stack@director ~]$ openstack role add --group consulting-members --group-domain Example --project consulting --project-domain Example --inherited admin
+(overcloud) [stack@director ~]$ openstack role assignment list --group consulting-members --group-domain Example --names 
+
+Question-22:
+[student@workstation]$ ssh root@compute0
+[root@compute0 ~]# ip netns (copy the ovn metadata value and fill the box)
+
+Question-23:
+[do the lab on chapter 10 page 440]
+
+
+  
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
