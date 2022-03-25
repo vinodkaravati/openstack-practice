@@ -24,3 +24,5 @@ wget http://materials.example.com/osp-small.qcow2
 openstack image create --disk-format qcow2 --file  osp-small.qcow2 --public web
 tar -zcvf file1.tar.gz templates
 wget https://raw.githubusercontent.com/vinodkaravati/openstack-practice/master/webserver.sh
+wget http://content/ex-scripts/user-data.file
+wget http://materials.example.com/heat/labserver-with-floatingip.yaml
