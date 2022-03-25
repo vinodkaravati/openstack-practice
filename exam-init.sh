@@ -26,3 +26,4 @@ tar -zcvf file1.tar.gz templates
 wget https://raw.githubusercontent.com/vinodkaravati/openstack-practice/master/webserver.sh
 wget https://raw.githubusercontent.com/vinodkaravati/openstack-practice/master/user-data.file
 wget http://materials.example.com/heat/labserver-with-floatingip.yaml
+wget https://raw.githubusercontent.com/vinodkaravati/openstack-practice/master/ceph.repo
