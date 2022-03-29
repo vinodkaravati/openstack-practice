@@ -27,3 +27,4 @@ wget https://raw.githubusercontent.com/vinodkaravati/openstack-practice/master/w
 wget https://raw.githubusercontent.com/vinodkaravati/openstack-practice/master/user-data.file
 wget http://materials.example.com/heat/labserver-with-floatingip.yaml
 wget https://raw.githubusercontent.com/vinodkaravati/openstack-practice/master/ceph.repo
+wget https://raw.githubusercontent.com/vinodkaravati/openstack-practice/master/swift_ring_rebalance.yaml
