@@ -1,4 +1,4 @@
-Openstack commands not auto completion, It would harder to type each and every word, How could we proceed on this ? Is there any commands to openstack autocompletion ?
+Openstack commands are not auto completion in exam command terminals, It would be very harder to type each and every word, How could we proceed on this ? Is there any commands to openstack autocompletion ?
 
 Q1: While initial verification they mentioned flavour size is 1024MiB in question but when we verifiy flavour value would be 728MiB only, So Do we need to remove the existing flavour and create a new or we can modify ?
 
