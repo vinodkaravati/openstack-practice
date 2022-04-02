@@ -1,0 +1,15 @@
+Openstack commands not auto completion, It would harder to type each and every word, How could we proceed on this ? Is there any commands to openstack autocompletion ?
+
+Q1: While initial verification they mentioned flavour size is 1024MiB in question but when we verifiy flavour value would be 728MiB only, So Do we need to remove the existing flavour and create a new or we can modify ?
+
+Q1: While initial verification they mentioned in question like robert user is a admin and george is admin and william is not admin  but when we verify we could see robert is admin and george is member and william is admin , So Do we need to remove existing rules and modify as per mentioned in question or how ?
+
+Q12: Do we need to meniton public option while creating Image though they didn't menioned public option in question ?
+
+Q15: process of authentication of ldap user with domain  &&  How could we proceed if they menioned 3 users 
+
+Q16: Can we create a ceph storage volume use engineering project as ROBERT ADMIN User ?
+
+Q17: post exam nodes will be reboot during that instance mount point also will be unmount and won't mount as we didn't mentioned path in fstab ?
+
+Q19:  How do we need to add admin role to existing role  &&  In guided excersize provided the different rule (like extended server attributes)why ?
