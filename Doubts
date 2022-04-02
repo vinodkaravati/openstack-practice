@@ -1,8 +1,10 @@
 Openstack commands are not auto completion in exam command terminals, It would be very harder to type each and every word, How could we proceed on this ? Is there any commands to openstack autocompletion ?
 
-Q1: While initial verification they mentioned flavour size is 1024MiB in question but when we verifiy flavour value would be 728MiB only, So Do we need to remove the existing flavour and create a new or we can modify ?
+Q1: While initial verification they mentioned flavour size is 1024MiB in question but when we verify flavour value would be 728MiB only, So Do we need to remove the existing flavour and create a new or we can modify ?
 
-Q1: While initial verification they mentioned in question like robert user is a admin and george is admin and william is not admin  but when we verify we could see robert is admin and george is member and william is admin , So Do we need to remove existing rules and modify as per mentioned in question or how ?
+Q1: While initial verification they mentioned in question like robert user is a admin and george is admin and william is not admin  but when we verify we could see robert is admin and george is member and william is admin , So Do we need to remove existing rules and modify as per mentioned in question or how ? 
+
+Q1: How could create or modify the flavor for specific project ?
 
 Q12: Do we need to meniton public option while creating Image though they didn't menioned public option in question ?
 
