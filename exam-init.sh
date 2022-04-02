@@ -4,8 +4,8 @@ openstack user create --domain ex210 --project engineering --project-domain ex21
 openstack user create --domain ex210 --project engineering --project-domain ex210 --password redhat --email george@gmail.com george
 openstack user create --domain ex210 --project engineering --project-domain ex210 --password redhat --email william@gmail.com william
 openstack role add --user robert --project engineering --project-domain ex210 --user-domain ex210 admin
-openstack role add --user george --project engineering --project-domain ex210 --user-domain ex210 admin
-openstack role add --user william --project engineering --project-domain ex210 --user-domain ex210 member
+openstack role add --user george --project engineering --project-domain ex210 --user-domain ex210 member
+openstack role add --user william --project engineering --project-domain ex210 --user-domain ex210 admin
 openstack network create engnet --project engineering
 openstack network list --project engineering
 openstack subnet create --subnet-range 192.168.10.0/24  --network  engnet eng-subnet --project engineering
@@ -19,7 +19,7 @@ openstack security group create web --project engineering --project-domain ex210
 openstack security group rule create --protocol icmp ssh --project engineering --project-domain ex210
 openstack security group rule create --protocol tcp --dst-port 22 ssh --project engineering --project-domain ex210
 openstack security group rule create --protocol tcp --dst-port 80 web --project engineering --project-domain ex210
-openstack flavor create --disk 10 --ram 2048 --vcpus 1 m1.petite
+openstack flavor create --disk 10 --ram 750 --vcpus 1 m1.petite
 wget http://materials.example.com/osp-small.qcow2
 openstack image create --disk-format qcow2 --file  osp-small.qcow2 --public web
 tar -zcvf file1.tar.gz templates
