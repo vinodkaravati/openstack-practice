@@ -1,0 +1,419 @@
+description: application-tracker
+heat_template_version: '2016-10-14'
+parameters:
+
+  public_net:
+    type: string
+    description: provider-datacentre
+    default: provider-datacentre
+
+  assigned_float:
+    type: string
+    description: static floating IP
+    default: 172.25.250.174
+
+  web_flavor:
+    type: string
+    description: Web server flavor
+    default: default
+
+  app_flavor:
+    type: string
+    description: App server flavor
+    default: default
+
+  db_flavor:
+    type: string
+    description: DB server flavor
+    default: default
+
+  db_user:
+    type: string
+    description: MYSQL application database account username
+    default: todo_user
+    hidden: true
+    constraints:
+      - length: { min: 1, max: 10 }
+
+  db_pass:
+    type: string
+    description: MYSQL application database account password
+    default: redhat
+    hidden: true
+    constraints:
+      - length: { min: 1, max: 41 }
+
+resources:
+
+  web_config:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      group: ungrouped
+      config: |
+        #!/bin/bash
+        sysctl /proc/sys/net/ipv4/ip_forward=1
+        sysctl net.ipv4.conf.all.forwarding=1
+        echo "net.ipv4.conf.all.forwarding=1" >> /etc/sysctl.d/99-sysctl.conf
+        sysctl -p
+        sysctl --system
+        firewall-offline-cmd --zone=public --add-forward-port=port=30080:proto=tcp:toport=30080:toaddr=192.168.8.10
+        firewall-offline-cmd --zone=public --add-masquerade
+        firewall-offline-cmd --zone=public --add-port=80/tcp
+        systemctl enable firewalld
+        systemctl start firewalld
+        /usr/bin/sed -i s-192.168.173.187-172.25.250.174-g /var/www/html/script/item.js
+
+  web_network:
+    type: OS::Neutron::Net
+    properties:
+      name: web_network
+      shared: false
+      port_security_enabled: true
+
+  web_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      name: web_subnet
+      network_id:
+        get_resource: web_network
+      cidr: 192.168.7.0/24
+      gateway_ip: 192.168.7.1
+      enable_dhcp: 'True'
+      dns_nameservers:
+      - 172.25.250.254
+
+  web1_port:
+    type: OS::Neutron::Port
+    properties:
+      name: web1_port
+      network:
+        get_resource: web_network
+      fixed_ips:
+      - subnet:
+          get_resource: web_subnet
+        ip_address: 192.168.7.10
+      port_security_enabled: false
+
+  web2_port:
+    type: OS::Neutron::Port
+    properties:
+      name: web2_port
+      network:
+        get_resource: web_network
+      fixed_ips:
+      - subnet:
+          get_resource: web_subnet
+        ip_address: 192.168.7.11
+      port_security_enabled: false
+
+  app_network:
+    type: OS::Neutron::Net
+    properties:
+      name: app_network
+      port_security_enabled: false
+      shared: false
+
+  app_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      cidr: 192.168.8.0/24
+      enable_dhcp: 'True'
+      gateway_ip: '192.168.8.1'
+      name: app_subnet
+      network_id:
+        get_resource: app_network
+
+  app1_port:
+    type: OS::Neutron::Port
+    properties:
+      name: app1_port
+      network:
+        get_resource: app_network
+      fixed_ips:
+      - subnet:
+          get_resource: app_subnet
+        ip_address: 192.168.8.10
+      port_security_enabled: false
+
+  db_network:
+    type: OS::Neutron::Net
+    properties:
+      name: db_network
+      port_security_enabled: false
+      shared: false
+
+  db_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      cidr: 192.168.9.0/24
+      enable_dhcp: 'True'
+      gateway_ip: '192.168.9.1'
+      name: db_subnet
+      network_id:
+        get_resource: db_network
+
+  db1_port:
+    type: OS::Neutron::Port
+    properties:
+      name: db1_port
+      network:
+        get_resource: db_network
+      fixed_ips:
+      - subnet:
+          get_resource: db_subnet
+        ip_address: 192.168.9.10
+      port_security_enabled: false
+
+  router0:
+    type: OS::Neutron::Router
+    properties:
+      name: router0
+      external_gateway_info:
+        network:
+          get_param: public_net
+
+  router0_web_if:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router:
+        get_resource: router0
+      subnet:
+        get_resource: web_subnet
+
+  router0_app_if:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router:
+        get_resource: router0
+      subnet:
+        get_resource: app_subnet
+
+  router0_db_if:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router:
+        get_resource: router0
+      subnet:
+        get_resource: db_subnet
+
+  http1_server:
+    type: OS::Nova::Server
+    properties:
+      block_device_mapping_v2:
+      - boot_index: 0
+        volume_id:
+          get_resource: web1_volume_vda
+      flavor:
+        get_param: web_flavor
+      name: http1_server
+      networks:
+      - port:
+          get_resource: web1_port
+      user_data_format: SOFTWARE_CONFIG
+      user_data: {get_resource: web_config}
+      scheduler_hints:
+        group:
+          get_resource: affinity_group
+
+  http2_server:
+    type: OS::Nova::Server
+    properties:
+      block_device_mapping_v2:
+      - boot_index: 0
+        volume_id:
+          get_resource: web2_volume_vda
+      flavor:
+        get_param: web_flavor
+      name: http2_server
+      networks:
+      - port:
+          get_resource: web2_port
+      user_data_format: SOFTWARE_CONFIG
+      user_data: {get_resource: web_config}
+      scheduler_hints:
+        group:
+          get_resource: affinity_group
+
+  db_server:
+    type: OS::Nova::Server
+    properties:
+      block_device_mapping_v2:
+      - boot_index: 0
+        volume_id:
+          get_resource: db_volume_vda
+      flavor:
+        get_param: db_flavor
+      name: db_server
+      networks:
+      - port:
+          get_resource: db1_port
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: |
+            #!/bin/bash
+            cat << EOF | mysql -u root
+            GRANT ALL PRIVILEGES ON todo.* TO 'db_user'@'%' IDENTIFIED BY 'db_pass';
+            FLUSH PRIVILEGES;
+            TRUNCATE todo.Item;
+            EOF
+
+          params:
+            db_user: { get_param: db_user }
+            db_pass: { get_param: db_pass }
+      scheduler_hints:
+        group:
+          get_resource: affinity_group
+
+  app_server:
+    type: OS::Nova::Server
+    properties:
+      block_device_mapping_v2:
+      - boot_index: 0
+        volume_id:
+          get_resource: app_volume_vda
+      flavor:
+        get_param: app_flavor
+      name: app_server
+      networks:
+      - port:
+          get_resource: app1_port
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: |
+            #!/bin/bash
+            cat << EOF > /opt/todo/node/models/db.js
+            module.exports.params = {
+              dbname: "todo",
+              username: "db_user",
+              password: "db_pass",
+              params: {
+                host: "192.168.9.10",
+                port: "3306",
+                dialect: 'mysql'
+              }
+            };
+            EOF
+
+            cat << EOF > /etc/systemd/system/apptrack-nodejs.service
+            [Unit]
+            Description = Start App Tracker NodeJS application
+            After = network.target
+
+            [Service]
+            WorkingDirectory=/opt/todo/node
+            ExecStart =/opt/todo/node/run.sh
+
+            [Install]
+            WantedBy = multi-user.target
+            EOF
+
+            systemctl enable apptrack-nodejs.service --now
+
+          params:
+            db_user: { get_param: db_user }
+            db_pass: { get_param: db_pass }
+
+      scheduler_hints:
+        group:
+          get_resource: affinity_group
+
+  web1_volume_vda:
+    type: OS::Cinder::Volume
+    properties:
+      image: rhel7-todo-web
+      name: web1_vda
+      size: '10'
+
+  web2_volume_vda:
+    type: OS::Cinder::Volume
+    properties:
+      image: rhel7-todo-web
+      name: web2_vda
+      size: '10'
+
+  db_volume_vda:
+    type: OS::Cinder::Volume
+    properties:
+      image: rhel7-todo-db
+      name: db_vda
+      size: '10'
+
+  app_volume_vda:
+    type: OS::Cinder::Volume
+    properties:
+      image: rhel7-todo-app1
+      name: app_vda
+      size: '10'
+
+  affinity_group:
+    type: OS::Nova::ServerGroup
+    properties:
+      name: affinity_group
+      policies:
+      - affinity
+
+  lb1:
+    type: OS::Octavia::LoadBalancer
+    properties:
+      admin_state_up: true
+      description: Load balancer for web layer
+      name: lb1
+      vip_subnet:
+        get_resource: web_subnet
+
+  lb1_listener:
+    type: OS::Octavia::Listener
+    properties:
+      admin_state_up: true
+      description: Listener for web layer
+      loadbalancer:
+        get_resource: lb1
+      name: lb1_listener
+      protocol: HTTP
+      protocol_port: 80
+
+  lb1_pool:
+    type: OS::Octavia::Pool
+    properties:
+      admin_state_up: true
+      description: Member pool for lb1
+      lb_algorithm: ROUND_ROBIN
+      listener:
+        get_resource: lb1_listener
+      loadbalancer:
+        get_resource:  lb1
+      name: lb1_pool
+      protocol: HTTP
+
+  lb1_monitor:
+    type: OS::Octavia::HealthMonitor
+    properties:
+      admin_state_up: true
+      delay: 5
+      expected_codes: 200
+      max_retries: 4
+      pool:
+        get_resource: lb1_pool
+      timeout: 10
+      type: HTTP
+      url_path: /
+
+  lb1_member_web1:
+    type: OS::Octavia::PoolMember
+
+  lb1_member_web2:
+    type: OS::Octavia::PoolMember
+
+  fip_ingress:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network:
+        get_param: public_net
+      dns_domain: apptrack.lab.example.com.
+      floating_ip_address:
+        get_param: assigned_float
+      port_id:
+        get_attr: [lb1, vip_port_id]
+
