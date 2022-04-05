@@ -28,4 +28,3 @@ wget https://raw.githubusercontent.com/vinodkaravati/openstack-practice/master/u
 wget http://materials.example.com/heat/labserver-with-floatingip.yaml
 wget https://raw.githubusercontent.com/vinodkaravati/openstack-practice/master/ceph.repo
 wget https://raw.githubusercontent.com/vinodkaravati/openstack-practice/master/swift_ring_rebalance.yaml
-sudo yum remove bash-completion -y
