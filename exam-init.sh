@@ -1,10 +1,11 @@
 openstack domain create ex210
 openstack project create --domain ex210 engineering
+openstack project create --domain ex210 operator
 openstack user create --domain ex210 --project engineering --project-domain ex210 --password redhat --email robert@gmail.com robert
-openstack user create --domain ex210 --project engineering --project-domain ex210 --password redhat --email george@gmail.com george
+openstack user create --domain ex210 --project operator --project-domain ex210 --password redhat --email george@gmail.com george
 openstack user create --domain ex210 --project engineering --project-domain ex210 --password redhat --email william@gmail.com william
 openstack role add --user robert --project engineering --project-domain ex210 --user-domain ex210 admin
-openstack role add --user george --project engineering --project-domain ex210 --user-domain ex210 member
+openstack role add --user george --project operator --project-domain ex210 --user-domain ex210 member
 openstack role add --user william --project engineering --project-domain ex210 --user-domain ex210 admin
 openstack network create engnet --project engineering
 openstack network list --project engineering
