@@ -1,0 +1,193 @@
+New Qs 
+
+1) rebalance instance rbserver from computehci0 to compute0
+
+openstack server list ==> 
+openstack server list --host computehci0.overcloud.example.com --all-projects
+openstack compute service set computehci0.overcloud.example.com nova-compute --disable
+openstack server list
+nova host-evacuate-live computehci0
+openstack server list --host compute0.overcloud.example.com --all-projects
+openstack compute service set computehci0.overcloud.example.com nova-compute --enable
+openstack server list
+
+2) IDM , already nfs server is comfigured in sidecar.lab.domain9.com,
+ Display the user in Exam domain , when u display it should display 2 users by name
+prakask
+toogo
+
+ca.crt file url is given and keystone.Example.conf url is given
+
+solution
+
+In workbench 
+wget http://...ca.crt
+scp ca.crt root@controller0
+In controller0
+create a pem file by name idm_ca.pem
+
+openssl x509 -in ca.crt -out idm_ca.pem -outform PEM
+cp idm_ca.pem /etc/pki/ca-trust/sources/anchors
+updat-ca-trust extras
+cd /var/lib/config-data/pu.../leystone/etc/keystone
+mkdir domains 
+chown -R 42425:42425 domains
+crudini --get keystone.conf identity
+crudini --set keystone.conf identity domain_specific_drivers_enabled
+crudini --set keystone.conf identity domain_specific_drivers_enabled true
+crudini --set keystone.conf identity identity domain_config_dir /etc/keystone/domains
+crudini --set keystone.conf assigment driver
+crudini --set keystone.conf assigment driver sql
+
+cd  /var/lib/config-data/puppet-generated/horizon/etc/openstack-dashboard/
+vi local_settings
+OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = True
+
+getsebool -a | grep switch
+setsebool -P authlogin_nsswitch_use_ldap=on
+
+cd /var/lib/config-data/puppet-generated/keystone/etc/keystone/domains/
+vi keystone.Exam.conf
+
+in firefox open the url of http://.....keystone.Example.conf
+copy the contents and add to keystone.Exam.conf
+in password field replace the password 
+
+
+
+In workbench 
+
+openstack domain create Exam
+openstack role add --domain Exam --user admin admin
+
+In controller 
+
+systemctl restart tripleo_keystone
+systemctl restart tripleo_horizon
+
+In workbench , wait for sometime and execute
+openstack user list --domain Exam 
+it should list the users 
+
+3)
+swift add new device with weightage set to 50 , and replicas set to 2
+Chap6 comparing object stores guided exercise
+
+4) heat stack
+
+5) aggregate
+ create a aggregate by name computehci0_aggregate
+ add host computechi0
+ create a flavor default_computehci0
+
+ create a aggregate by name compute0_aggregate
+  add host compute0
+  create a flavor default_compute0
+
+6) aggregate
+There is a aggregate by name Openspread
+add host computehci0 
+set the property to Distrubuted=true
+flavor m1.mini , for this u need to set a property as per qs 
+
+7) aggregate 
+there is a role by name Engineers, there is a aggregate by name openspread, by default only admin can list out aggregate , customize the role so that any user can 
+list the aggregate 
+
+yum install python3-oslo-policy
+
+ podman exec -it nova_api oslopolicy-policy-generator --namespace nova > nova_policy.txt
+
+vi nova_policy.txt
+"os_compute_api:os-aggegates:index": "rule:admin_api"
+{
+"os_compute_api:os-aggegates:index": "rule:admin_api or role:Engineers"
+}
+/var/lib/config-data/puppet-generated/nova/etc/nova
+vi policy.json
+{
+"os_compute_api:os-aggegates:show": "rule:admin_api or role:Engineers"
+}
+
+cat policy.json | python3 -m json.tool 
+
+systemctl restart tripleo_nova_api
+
+
+ 
+8) backup 
+
+do this at the end 
+take the backup of controller , already nfs is setup 
+scirpt are placed in director node under /home/stack_backup_yml
+u will find 2 scripts , one is related to rear installation and other one is backup script 
+
+Chap 2 lab  
+
+9) Domain name Sales,Parent project Finance, create a child project by name Accountancy
+
+create a group by name accounts, add 2 users to this group mentioned in the qs 
+child project should have inherited from the parent project on permissions
+
+
+
+
+
+
+
+ascii
+web image 
+
+2 instance and uses 2 flavor 
+
+lb id and port 
+
+rpm -q bash-completion > /dev/null 2>&1 && openstack complete > /usr/share/bash-completion/completions/openstack
+
+
+openstack stack create -t template.yml -e env.yml --dry-run Heat-Stack
+openstack stack create -t template.yml -e env.yml --enable-rollback Heat-Stack
+
+openstack stack list 
+
+
+
+heat stack LB qs , and thi will create 2 instances 
+ip netns they are use identify the haproxy namspace created in previous task
+
+
+openstack stack create -t  template.yml --dry-run ASCII 
+
+2 flavorneed to use , port 29 , subnet details , image name ,
+
+parameters section 
+
+
+openstack server list 
+ssh will not work 
+openstack console show url instancename 
+
+
+rbserver
+swift 
+custom user role 
+aggegate computehci
+
+while creating accountancy project under finance is trap 
+
+project inheritance 
+br-int geneve solution 
+multi domain 
+
+heat-stack lb 
+gusetfish
+ip netns
+
+
+
+
+# rpm -q bash-completion > /dev/null 2>&1 && openstack complete > /usr/share/bash-completion/completions/openstack --- root
+
+Source /usr/share/bash-completion/completions/openstack   file to enable anopenstack client bash autocompletion functionality -- stack user
+
+
