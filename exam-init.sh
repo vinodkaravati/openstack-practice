@@ -13,8 +13,17 @@ openstack subnet create --subnet-range 192.168.10.0/24  --network  engnet eng-su
 openstack router create ex210-router --project engineering
 neutron router-interface-add ex210-router eng-subnet
 neutron router-gateway-set ex210-router provider-datacentre
-openstack keypair create webkey > /home/stack/webkey.pem
-chmod 600 /home/stack/webkey.pem
+#openstack keypair create webkey > /home/stack/webkey.pem
+#chmod 600 /home/stack/webkey.pem
+openstack compute service set compute0.overcloud.example.com --disable
+openstack compute service set compute0.overcloud.example.com --disable
+openstack domain create Sales
+openstack project create --domain Sales Finance
+openstack group create accounts
+openstack role create Engineers
+openstack user create --domain Sales john
+openstack user create --domain Sales collin
+openstack server create --flavor m1.petite --image web --config-drive true --key-name webkey --nic net-id=engnet rbserver --wait
 openstack security group create ssh --project engineering --project-domain ex210
 openstack security group create web --project engineering --project-domain ex210
 openstack security group rule create --protocol icmp ssh --project engineering --project-domain ex210
