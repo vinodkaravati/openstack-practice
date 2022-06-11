@@ -23,7 +23,6 @@ openstack group create accounts
 openstack role create Engineers
 openstack user create --domain Sales john
 openstack user create --domain Sales collin
-openstack server create --flavor m1.petite --image web --config-drive true --key-name webkey --nic net-id=engnet rbserver --wait
 openstack security group create ssh --project engineering --project-domain ex210
 openstack security group create web --project engineering --project-domain ex210
 openstack security group rule create --protocol icmp ssh --project engineering --project-domain ex210
@@ -38,3 +37,4 @@ wget https://raw.githubusercontent.com/vinodkaravati/openstack-practice/master/u
 wget http://materials.example.com/heat/labserver-with-floatingip.yaml
 wget https://raw.githubusercontent.com/vinodkaravati/openstack-practice/master/ceph.repo
 wget https://raw.githubusercontent.com/vinodkaravati/openstack-practice/master/swift_ring_rebalance.yaml
+openstack server create --flavor m1.petite --key-name webkey --nic net-id=engnet --image web --config-drive true  rbserver --wait
