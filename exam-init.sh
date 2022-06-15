@@ -21,8 +21,8 @@ openstack domain create Sales
 openstack project create --domain Sales Finance
 openstack group create accounts
 openstack role create Engineers
-openstack user create --domain Sales john
-openstack user create --domain Sales collin
+openstack user create --domain Sales john --password redhat
+openstack user create --domain Sales collin --password redhat
 openstack security group create ssh --project engineering --project-domain ex210
 openstack security group create web --project engineering --project-domain ex210
 openstack security group rule create --protocol icmp ssh --project engineering --project-domain ex210
