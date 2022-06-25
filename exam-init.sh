@@ -37,4 +37,4 @@ wget https://raw.githubusercontent.com/vinodkaravati/openstack-practice/master/u
 wget http://materials.example.com/heat/labserver-with-floatingip.yaml
 wget https://raw.githubusercontent.com/vinodkaravati/openstack-practice/master/ceph.repo
 wget https://raw.githubusercontent.com/vinodkaravati/openstack-practice/master/swift_ring_rebalance.yaml
-openstack server create --flavor m1.petite --key-name webkey --nic net-id=engnet --image web --config-drive true  rbserver --wait
+openstack server create --flavor default --key-name webkey --nic net-id=engnet --image web --config-drive true  rbserver --wait
